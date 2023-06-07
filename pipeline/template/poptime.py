@@ -2,7 +2,7 @@
 # %%
 
 # %%
-
+#generate csv with population in each patch over time after dispersal
 
 import pandas as pd
 import matplotlib
@@ -46,12 +46,13 @@ df=pd.read_csv(path+filename+'_stats.txt', delimiter='\t')
 df=df.iloc[:, [0,1,4]]
 
 df = df.rename(columns={"replicate   ": "replicate", "generation  ": "generation", "adlt.nbInd_p3": "population"})
+#extract only dispersal phase generations
 df= df[df['generation'] > 10000] 
 
 
 # %%
 
-
+#save to csv
 df.to_csv(filename+"_popsizes.csv")
 #-----------------------------------------------------------------
 #make plot

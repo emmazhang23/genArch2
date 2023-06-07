@@ -18,6 +18,8 @@ import argparse
 
 # In[ ]:
 
+#script to generate the csv that lists replicate number and lag phase after simulation finishes using the stats file
+#Allow for specification of filename, number of Qloci, and replicate number in command line
 
 parser = argparse.ArgumentParser(description='Generate Lag File')
 
@@ -33,6 +35,7 @@ args = parser.parse_args()
 
 # In[2]:
 
+#function to pull lag phases from stats file
 
 def lagphase(data):
     lag = []

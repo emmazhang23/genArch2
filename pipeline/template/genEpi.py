@@ -5,16 +5,7 @@
 
 
 import pandas as pd
-#import copy
-#import matplotlib
-#import matplotlib.pyplot as plt
-#import seaborn as sns
 import numpy as np
-#from pandas import DataFrame, Series
-#from matplotlib.patches import Polygon
-#from optparse import OptionParser
-#import configparser
-#from configparser import SafeConfigParser
 import argparse
 import itertools
 from re import search
@@ -24,6 +15,8 @@ import re as re
 
 # In[292]:
 
+#script to generate the epistasis file that specifies DMI genotypes and the fitness effect
+#Allow for specification of filename, number of DMI loci, and effect size in command line
 
 my_parser = argparse.ArgumentParser(description='Generate Epistasis File')
 my_parser.add_argument('-l',
@@ -43,20 +36,6 @@ my_parser.add_argument('-d',
 args = my_parser.parse_args()
 
 
-# In[257]:
-
-
-#parser = OptionParser()
-## options to enter in the command line
-#parser.add_option("-l", "--loci", dest="loci",  action="store", type="int",
-#                 help="number of loci")
-#parser.add_option("-f", "--fitness", dest="fitness",  action="store", type="int",
-#                 help="the fitness that having DMI is reduced to")
-
-
-#(options, args) = parser.parse_args()
-
-
 # In[273]:
 
 
@@ -65,13 +44,13 @@ loci= args.loci
 
 # In[274]:
 
-
+#open new file with same naming convention with _epi.txt extension 
 f= open(args.filename +"_epi.txt","w")
 
 
 # In[275]:
 
-
+#write file headers in quantinemo convention
 f.write("[FILE_INFO] {\n")
 f.write("col_genotype 1\n")
 f.write("col_fitness_factor 2\n")
@@ -81,31 +60,22 @@ f.write("#genotype fitness\n")
 
 # In[276]:
 
-
+#Prupose of script:
 #generate table of simplified mutation (all the combinations of 2 in pairs) and their fitness values (if dmi, decrease)
 #generated table should be "loci" number of consecutive numbers, 2 options per loci (because 2 alleles)
 #generate table of all permutation's (simplified permutations) fitnesses
 #go through each permutation and add up all partial matches
-#
-
 
 # In[277]:
 
-
-def find_nth_overlapping(haystack, needle, n):
-    start = haystack.find(needle)
-    while start >= 0 and n > 1:
-        start = haystack.find(needle, start+1)
-        n -= 1
-    return start
-
+#helper function to find index of character in string
 def find(s, ch):
     return [i for i, ltr in enumerate(s) if ltr == ch]
 
 
 # In[278]:
 
-
+#helper function to determine whether Array A is a subarray of array B
 def isSubArray(A, B, n, m):
     i = 0; j = 0;
 
@@ -128,10 +98,11 @@ def isSubArray(A, B, n, m):
 
 # In[279]:
 
-
+#Create a column in df with all permutations of ancestral allele (1) and novel allele (2) as a string of "loci" 
 simple = ["1", "2"]
 simp = pd.DataFrame(list(itertools.product(simple, repeat = loci)))
 simp[loci]=simp[0]
+
 
 for k in range(1,loci,1):
     simp[loci]+=simp[k]
@@ -140,7 +111,6 @@ simp[loci+2]=1
 
 
 # In[280]:
-##need to set column as S E R I ES!!!!
 
 series = []
 for index, row in simp.iterrows():

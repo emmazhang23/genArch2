@@ -6,14 +6,10 @@
 
 import pandas as pd
 import copy
-import matplotlib
-import matplotlib.pyplot as plt
-import seaborn as sns
 import numpy as np
 from pandas import DataFrame, Series
-from matplotlib.patches import Polygon
 import argparse
-
+import itertools
 
 # In[ ]:
 
@@ -46,6 +42,8 @@ args = parser.parse_args()
 
 
 # In[2]:
+def find(s, ch):
+    return [i for i, ltr in enumerate(s) if ltr == ch]
 
 
 reps=args.replicates
@@ -53,6 +51,7 @@ gens=(args.burn+args.dispersal)
 path="./" +args.filename+"/quanti_genotype/"
 loci= int(args.loci)
 eloci=int(args.epiloci)
+filename=args.filename
 
 # In[3]:
 
@@ -66,17 +65,59 @@ genLen=len(genStr)
 
 # In[44]:
 
+#create dataframe with all permutations of 1 and 2 in loci number of spots in fourth column
+simple = ["1", "2"]
+simp = pd.DataFrame(list(itertools.product(simple, repeat = eloci)))
+simp[eloci]=simp[0]
+
+for k in range(1,eloci,1):
+    simp[eloci]+=simp[k]
+simp[eloci+1]=0
+simp[eloci+2]=1
+#make series that iterates through all the rows and finds the index at which there is a 2
+series = []
+for index, row in simp.iterrows():
+    l=0
+    length=simp.loc[index, eloci].count("2")
+    array=np.empty(length)
+
+    n = find(row[eloci], "2")
+    series.append(n)
+    
+    
+simp[eloci+1]=series
+
+odd=[]
+even=[]
+
+for index, row in simp.iterrows():
+    #odd
+    odd.append(sum(map(lambda i: i % 2 != 0, row[eloci+1])))
+    #even
+    even.append(sum(map(lambda i: i % 2 == 0, row[eloci+1])))
+        
+        
+simp[eloci+2]=odd
+simp[eloci+3]=even
+
+#number of interactions
+simp[eloci+4]=simp[eloci+2]*simp[eloci+3]
+simp[eloci+5]=np.where(simp[eloci+4]>0, True, False)
+
+simp_dict=dict(zip(simp[eloci], simp[eloci+5]))
+simp_dict     
+
 
 #Make dataframe with
 #replicate      Generation         DMI genotype frequency
 #plot by facet of Replicate so each line is a replicate
-column_names = ["rep", "gen", "freq"]
+column_names = ["rep", "cgen", "freq"]
 
 df = pd.DataFrame(columns = column_names)
 for i in range(1, int(reps)+1, 1):
-    for n in range(10000, int(gens)+1, 1):
-        #table=pd.read_table(path+args.filename+"_g"+n.zfill(genLen)+"_r"+i.zfill(repLen)+".dat", header=None, skiprows=(2*loci)+1+eloci, delim_whitespace = True)
-        table=pd.read_table(path+args.filename+"_g"+str(n).zfill(genLen)+"_r"+str(i).zfill(repLen)+".dat", header=None, skiprows=(2*loci)+1+eloci, delim_whitespace = True)
+    for n in range(10000, int(gens)+1, 10):
+        #table=pd.read_table(path+ filename+"_g"+n.zfill(genLen)+"_r"+i.zfill(repLen)+".dat", header=None, skiprows=(2*loci)+1+eloci, delim_whitespace = True)
+        table=pd.read_table(path+ filename+"_g"+str(n).zfill(genLen)+"_r"+str(i).zfill(repLen)+".dat", header=None, skiprows=(2*loci)+1+eloci, delim_whitespace = True)
         table=table.loc[table[0] == 3]
         Dfreq=0 #dmi freq
         Nfreq=0 #normal freq
@@ -84,16 +125,21 @@ for i in range(1, int(reps)+1, 1):
             table=table.drop([p], axis=1)
 
 
-        table[(loci*2)+eloci+1]='0'
+        table[(loci*2)+eloci+1]=''
 
         table=table.astype(str)
 
         for p in range((loci*2)+1,1+eloci+(loci*2)):
             #table[loci+1+eloci]=table[loci+1+eloci]+isSubstring('2', table[p])
-
             table[(loci*2)+1+eloci]+=np.where(table[p].str.contains('2'), '2', '1')
+        
+        table[(loci*2)+2+eloci]=table[(loci*2)+1+eloci].map(simp_dict)
 
-        freq=((table[(loci*2)+1+eloci].str.contains('22')).sum())/len(table.index)
+
+        print(table)
+        freq=table[(loci*2)+2+eloci].values.sum() /len(table.index)
+        print(table[(loci*2)+2+eloci].values.sum())
+        print(freq)
         row = {'rep': i, 'cgen': n, 'freq': freq}
         df = df.append(row, ignore_index = True)
 #freq of combined probability for each generation

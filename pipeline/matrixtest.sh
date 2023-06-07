@@ -1,13 +1,11 @@
-#lowkey more organized version
-
 #to make deleting the tests easier lol
 mkdir test
 cd test
 
-#array for decrease in fitness k
+#array for decrease in fitness k (1-effect size)*100
 FITNESS=(0 95 100)
 
-#array for selection p
+#array for selection intensity p
 SELECTION=(1 3 1000)
 
 
