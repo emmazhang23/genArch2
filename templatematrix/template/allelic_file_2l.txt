@@ -1,0 +1,20 @@
+#Allelic values 
+################################################################
+
+[FILE_INFO]{
+    col_locus 1
+    col_allele 2
+    col_allelic_value 3
+    col_mut_freq 4
+    col_ini_freq 5
+}
+
+# 2 loci
+# max 2 alleles per locus
+# mutation model: KAM
+
+#locus	allele	value	mut_freq	ini_freq
+1	1	0	0.5	1
+1	2	0.5	0.5	0
+2	1	0	0.5	1
+2	2	0.5	0.5	0
